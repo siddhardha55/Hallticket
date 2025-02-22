@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hall Ticket</title>
+    <style>
+        .page-titlespacing-web {
+            /* Add your styles here */
+        }
+        .inner-herbpage-service-title1 {
+            /* Add your styles here */
+        }
+        .outer-page-content-container {
+            /* Add your styles here */
+        }
+        .form-control {
+            /* Add your styles here */
+        }
+        .text-error {
+            /* Add your styles here */
+        }
+        .captcha-image {
+            width: auto;
+            height: 40px;
+        }
+        .btn {
+            /* Add your styles here */
+        }
+    </style>
+</head>
+<body>
+    <div class="page-titlespacing-web">
+        <div class="inner-herbpage-service-title1">
+            <h1>Board of Intermediate Education, Government of Andhra Pradesh, I.P.E March-2025 First Year & Second Year Theory Examination Hall Tickets</h1>
+        </div>
+    </div>
+    <div class="outer-page-content-container">
+        <form id="hallTicketForm">
+            <br><br>
+            <center>
+                <div class="inner-herbpage-service-title-sub">
+                    <h1 style="color: #0352fc;">Intermediate Public Examinations, March-2025 First Year & Second Year Theory Examination Hall Tickets</h1>
+                </div>
+                <div class="px-4 pt-4">
+                    <div>
+                        <span><b style="font-size: 18px;">Enter Roll No.(I.P.E  2025)/First Year Hallticket No./Aadhaar No./ SSC Hallticket No.(for First Year Students):</b></span>
+                        <span class="text-danger">*</span>
+                        <br>
+                        <input type="text" name="hallticketno" class="form-control">
+                        <div class="text-error"></div>
+                    </div>
+                </div>
+                <div class="px-4 pt-4">
+                    <div>
+                        <span><b style="font-size: 18px;">Date of Birth (dd-mm-yyyy):</b></span>
+                        <span class="text-danger">*</span>
+                        <br>
+                        <input type="date" name="dob" class="form-control">
+                        <div class="text-error"></div>
+                    </div>
+                    <div>
+                        <span><b style="font-size: 18px;">(OR)Full Name:(as per SSC or other Board)</b></span>
+                        <span class="text-danger">*</span>
+                        <br>
+                        <!-- Removed input for name -->
+                        <!-- <input type="text" name="name" class="form-control"> -->
+                        <div class="text-error"></div>
+                    </div>
+                </div>
+                <div class="px-4 pt-4">
+                    <div>
+                        <!-- Removed captcha section -->
+                        <!-- <span class="captcha-text"> -->
+                        <!--     <img src="..." alt="Captcha" class="captcha-image" draggable="false" style="width: auto; height: 40px;"> -->
+                        <!-- </span> -->
+                    </div>
+                    <div>
+                        <!-- Removed input for enteredCaptcha -->
+                        <!-- <input type="text" name="enteredCaptcha" placeholder="Enter captcha" class="form-control"> -->
+                        <div class="fa fa-exclamation-triangle text-danger"></div>
+                    </div>
+                </div>
+                <br>
+                <button type="button" onclick="submitForm()" class="btn rounded-0 btn-primary btn-sm" style="float: center;">Download HallTicket</button>
+            </center>
+            <br><br><br>
+            <span style="color: red; font-size: 20px;">
+                Note :<br>
+                <b style="color: red; font-size: 20px;">1.For First Year Students:Enter First Year/SSC Hall Ticket Number.</b><br>
+                <b style="color: red; font-size: 20px;">2.For Second Year Students:Enter Second Year/First Year Hall Ticket Number.</b>
+            </span>
+        </form>
+    </div>
+    <script>
+        function submitForm() {
+            const formData = new FormData(document.getElementById('hallTicketForm'));
+            const jsonData = {
+                rollno: formData.get('hallticketno'),
+                dob: formatDate(formData.get('dob')),
+                name: formData.get('name'),
+                enteredCaptcha: formData.get('enteredCaptcha')
+            };
+
+            console.log('Data being sent:', JSON.stringify(jsonData));
+
+            // First API call
+            fetch('https://bieapi.apcfss.in/apbie/student-services/getpublicrollnocountdms', {
+                method: 'POST',
+                body: JSON.stringify(jsonData),
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Success:', data);
+                if (data.ResponseCode === "02") {
+                    alert(data.ResponseDesc); // Display the error message to the user
+                } else {
+                    // Handle the successful response as needed
+                }
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+
+            // New API call
+            fetch('https://bieapi.apcfss.in/apbie/student-services/theoryhallticketinpublicviehgjjkkljjhkj', {
+                method: 'POST',
+                body: JSON.stringify(jsonData),
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => {
+                // Check if the response is OK (status in the range 200-299)
+                if (!response.ok) {
+                    throw new Error('Network response was not ok: ' + response.statusText);
+                }
+                // Check the Content-Type of the response
+                const contentType = response.headers.get('Content-Type');
+                if (contentType && contentType.includes('application/pdf')) {
+                    // Handle PDF response
+                    return response.blob(); // Get response as a Blob
+                } else {
+                    return response.text(); // Get response as text
+                }
+            })
+            .then(data => {
+                // Check if the data is a Blob (PDF)
+                if (data instanceof Blob) {
+                    const url = URL.createObjectURL(data);
+                    window.open(url); // Open the PDF in a new tab
+                } else {
+                    try {
+                        const jsonData = JSON.parse(data); // Attempt to parse the text as JSON
+                        console.log('Success from new API:', jsonData);
+                        // Handle the response from the new API as needed
+                    } catch (error) {
+                        console.error('Error parsing JSON:', error);
+                        console.log('Response text:', data); // Log the raw response for debugging
+                    }
+                }
+            })
+            .catch((error) => {
+                console.error('Error from new API:', error);
+            });
+        }
+
+        function formatDate(dateString) {
+            const [day, month, year] = dateString.split('-');
+            return `${year}-${month}-${day}`; // Convert to yyyy-mm-dd format
+        }
+    </script>
+</body>
+</html>
